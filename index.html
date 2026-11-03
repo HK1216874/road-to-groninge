@@ -183,6 +183,11 @@ a{color:inherit}
 .wheels i{width:46px;height:46px;border-radius:50%;background:var(--ink);border:10px solid #24372D}
 
 /* ===== PRIZES ===== */
+.holder{display:flex;flex-direction:column;gap:6px;font-family:var(--text);letter-spacing:0;line-height:1.1}
+.holder strong{font:800 clamp(30px,3vw,46px)/1 var(--display);letter-spacing:-.01em}
+.holder em{font-style:normal;font-size:17px;font-weight:600;opacity:.8}
+.s2 .holder strong,.s3 .holder strong{font-size:clamp(26px,2.4vw,36px)}
+.holder.empty strong{opacity:.55}
 .prize-sec{background:var(--paper);color:var(--ink);padding-block:var(--gap)}
 .prize-sec h2{font-size:clamp(56px,8vw,128px);max-width:9em}
 .prize-sec .lede{font-size:clamp(18px,1.4vw,21px);margin-top:24px;max-width:34em}
@@ -300,11 +305,11 @@ a{color:inherit}
   <nav class="nav" aria-label="Hoofdmenu">
     <a class="wordmark" href="#top">Road to Groningen</a>
     <ul>
+      <li><a href="#prijzen">Ranglijst</a></li>
       <li><a href="#tussenstand">Tussenstand</a></li>
       <li><a href="#ingestapt">Ingestapt</a></li>
       <li><a href="#rekenen">Punten</a></li>
       <li><a href="#tickets">Tickets</a></li>
-      <li><a href="#prijzen">Prijzen</a></li>
       <li><a href="#golden">Golden Ticket</a></li>
       <li><a href="#dienstregeling">Dienstregeling</a></li>
     </ul>
@@ -355,6 +360,19 @@ a{color:inherit}
       </div>
     </div>
   </article>
+</section>
+
+<!-- PRIZES: the ranking, at the top -->
+<section class="prize-sec" id="prijzen" aria-labelledby="h-prize">
+  <div class="frame">
+    <h2 id="h-prize" class="rv">Ranglijst</h2>
+    <p class="lede rv" style="--i:1">Wie nu op plek 1, 2 en 3 staat, en wat ze winnen: reisgeld om vrij te besteden in Groningen. De nummer &eacute;&eacute;n mag bovendien een extra ticket weggeven aan wie hij of zij wil.</p>
+    <div class="stubs">
+      <div class="stubp s1 rv" style="--i:1"><span>Eerste plek</span><div class="holder" id="holder-1"><strong>Nog vrij</strong><em>Wie pakt de eerste plek?</em></div><b class="num">&euro;150</b><p>plus een extra ticket om weg te geven</p></div>
+      <div class="stubp s2 rv" style="--i:2"><span>Tweede plek</span><div class="holder" id="holder-2"><strong>Nog vrij</strong></div><b class="num">&euro;75</b></div>
+      <div class="stubp s3 rv" style="--i:3"><span>Derde plek</span><div class="holder" id="holder-3"><strong>Nog vrij</strong></div><b class="num">&euro;25</b></div>
+    </div>
+  </div>
 </section>
 
 <!-- BOARD -->
@@ -447,19 +465,6 @@ a{color:inherit}
   </div>
 </section>
 
-<!-- PRIZES -->
-<section class="prize-sec" id="prijzen" aria-labelledby="h-prize">
-  <div class="frame">
-    <h2 id="h-prize" class="rv">Reisgeld voor de top drie</h2>
-    <p class="lede rv" style="--i:1">Vrij te besteden in Groningen. De nummer &eacute;&eacute;n mag bovendien een extra ticket weggeven aan wie hij of zij wil.</p>
-    <div class="stubs">
-      <div class="stubp s1 rv" style="--i:1"><span>Eerste plek</span><b class="num">&euro;150</b><p>plus een extra ticket om weg te geven</p></div>
-      <div class="stubp s2 rv" style="--i:2"><span>Tweede plek</span><b class="num">&euro;75</b></div>
-      <div class="stubp s3 rv" style="--i:3"><span>Derde plek</span><b class="num">&euro;25</b></div>
-    </div>
-  </div>
-</section>
-
 <!-- GOLDEN TICKET -->
 <section class="gold-sec" id="golden" aria-labelledby="h-gold">
   <div class="frame gold">
@@ -535,6 +540,7 @@ a{color:inherit}
     var html='', rank=0, prev=null;
     list.forEach(function(p,i){
       if(p.pts!==prev){ rank=i+1; prev=p.pts; }
+      p.rank = rank;
       var shown = p.pts>0 ? rank : '&ndash;';
       var top = p.pts>0 && rank<=3;
       html += '<tr'+(top?' class="top"':'')+' style="--i:'+i+'"><td class="pos">'+shown+'</td><td class="name">'+esc(p.name)+'<span class="det">'+p.leads+' leads &middot; '+p.mg+' M&amp;G &middot; '+p.aann+' aannames</span></td><td class="r">'+p.leads+'</td><td class="r">'+p.mg+'</td><td class="r">'+p.aann+'</td><td class="r pts">'+p.pts+'</td></tr>';
@@ -542,6 +548,14 @@ a{color:inherit}
     document.getElementById('board-body').innerHTML = html;
     document.getElementById('board-status').innerHTML = note;
     people = list;
+    [1,2,3].forEach(function(k){
+      var who = list.filter(function(p){ return p.pts>0 && p.rank===k; });
+      var el = document.getElementById('holder-'+k);
+      if(!el) return;
+      if(!who.length){ el.className='holder empty'; el.innerHTML='<strong>Nog vrij</strong>'+(k===1?'<em>Wie pakt de eerste plek?</em>':''); return; }
+      el.className='holder';
+      el.innerHTML='<strong>'+who.map(function(p){ return esc(p.name); }).join(' &amp; ')+'</strong><em>'+who[0].pts+' punten'+(who.length>1?' (gedeeld)':'')+'</em>';
+    });
     var boarded = list.filter(function(p){ return p.aann>0; }).sort(function(a,b){ return b.aann-a.aann || a.name.localeCompare(b.name,'nl'); });
     var ticketsOut = boarded.length;
     document.getElementById('boarded-n').textContent = ticketsOut;
